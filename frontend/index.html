@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Company Chatbot</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 420px;
+      height: 620px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .chat-header {
+      background: linear-gradient(135deg, #1a5c38, #2e8b57);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chat-header .avatar {
+      width: 42px;
+      height: 42px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .chat-header .info h2 {
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .chat-header .info p {
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #7CFC00;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    /* ── Messages ── */
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #c5d9cc;
+      border-radius: 4px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+    }
+
+    .message.user {
+      align-self: flex-end;
+    }
+
+    .message .bubble {
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .message.bot .bubble {
+      background: #f0f7f2;
+      color: #1a1a1a;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #d4eadb;
+    }
+
+    .message.user .bubble {
+      background: linear-gradient(135deg, #1a5c38, #2e8b57);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message .timestamp {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .message.user .timestamp {
+      text-align: right;
+    }
+
+    /* ── Typing indicator ── */
+    .typing .bubble {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding: 14px 18px;
+    }
+
+    .typing .dot {
+      width: 8px;
+      height: 8px;
+      background: #2e8b57;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%           { transform: translateY(-8px); }
+    }
+
+    /* ── Input area ── */
+    .chat-input {
+      padding: 16px;
+      border-top: 1px solid #e8f0eb;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1.5px solid #d4eadb;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      color: #1a1a1a;
+      transition: border 0.2s;
+    }
+
+    .chat-input input:focus {
+      border-color: #2e8b57;
+    }
+
+    .chat-input button {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #1a5c38, #2e8b57);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.2s;
+    }
+
+    .chat-input button:hover {
+      opacity: 0.85;
+    }
+
+    .chat-input button svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+    }
+
+    /* ── Welcome message ── */
+    .welcome {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .welcome p {
+      font-size: 12px;
+      color: #888;
+      background: #f5f5f5;
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="avatar">🌿</div>
+    <div class="info">
+      <h2>Company Assistant</h2>
+      <p><span class="status-dot"></span>Online — Agriculture, Economics & Climate</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chatMessages">
+    <div class="welcome">
+      <p>Welcome! Ask me anything about our services.</p>
+    </div>
+    <!-- Bot greeting -->
+    <div class="message bot">
+      <div class="bubble">
+        Hello! 👋 I'm your company assistant. I can help you with questions about our
+        Agriculture, Economics, and Climate consultancy services. How can I help you today?
+      </div>
+      <span class="timestamp">Just now</span>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input">
+    <input
+      type="text"
+      id="userInput"
+      placeholder="Type your question..."
+      autocomplete="off"
+    />
+    <button onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+      </svg>
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const chatMessages = document.getElementById('chatMessages');
+  const userInput    = document.getElementById('userInput');
+
+  // Send on Enter key
+  userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+  });
+
+  function getTime() {
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function appendMessage(role, text) {
+    const msg = document.createElement('div');
+    msg.classList.add('message', role);
+    msg.innerHTML = `
+      <div class="bubble">${text}</div>
+      <span class="timestamp">${getTime()}</span>
+    `;
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function showTyping() {
+    const typing = document.createElement('div');
+    typing.classList.add('message', 'bot', 'typing');
+    typing.id = 'typingIndicator';
+    typing.innerHTML = `
+      <div class="bubble">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    `;
+    chatMessages.appendChild(typing);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function removeTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+  }
+
+  async function sendMessage() {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    // Show user message
+    appendMessage('user', message);
+    userInput.value = '';
+
+    // Show typing indicator
+    showTyping();
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message })
+      });
+
+      const data = await response.json();
+      removeTyping();
+
+      if (data.reply) {
+        appendMessage('bot', data.reply);
+      } else {
+        appendMessage('bot', 'Sorry, something went wrong. Please try again.');
+      }
+
+    } catch (error) {
+      removeTyping();
+      appendMessage('bot', 'Unable to connect to the server. Please make sure the backend is running.');
+    }
+  }
+</script>
+
+</body>
+</html>
