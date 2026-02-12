@@ -65,6 +65,8 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ── Health check endpoint ────────────────────────────────
